@@ -51,3 +51,4 @@
 
 (package! exunit)
 (package! flycheck-credo)
+(package! youdao-dictionary)

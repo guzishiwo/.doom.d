@@ -6,6 +6,10 @@
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets.
+
+(setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+
 (setq user-full-name "dot-wei"
       user-mail-address "weicijiang@foxmail.com")
 
@@ -25,9 +29,18 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-monokai-classic)
+(setq doom-theme 'doom-one)
+(setq doom-font (font-spec :family "JetBrains Mono NL" :size 14))
 
-(setq doom-font (font-spec :family "Fira Code" :size 14))
+
+(after! evil
+  (delete-selection-mode 1)
+  (remove-hook 'evil-insert-state-entry-hook #'delete-selection-mode)
+  (remove-hook 'evil-insert-state-exit-hook  #'+default-disable-delete-selection-mode-h)
+  )
+
+
+(setq python-shell-virtualenv-path "~/.Envs/")
 
 (if (not (display-graphic-p))
     (progn
@@ -36,42 +49,114 @@
       (setq gc-cons-threshold 100000000)
       ;; warn when opening files bigger than 100MB
       (setq large-file-warning-threshold 100000000)
-      (setq read-process-output-max (* 1024 1024 328)) ;; 328MB
+      (setq read-process-output-max (* 1024 1024 128)) ;; 328MB
       ))
 
-
+;; default mode
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+(after! org
+  (setq org-directory "~/Documents/Org/")
+  (setq org-agenda-files (list "~/Documents/Org/"))
+  ;; (setq org-hide-emphasis-markers t)
+  (setq org-export-with-sub-superscripts nil)
+  (setq org-export-html-postamble nil)
+  (set-face-attribute 'org-table  nil  :font "Sarasa Mono SC Nerd 14"
+                     :fontset (create-fontset-from-fontset-spec (concat "-*-*-*-*-*--*-*-*-*-*-*-fontset-orgtable" ",han:Sarasa Mono SC Nerd 14")))
+  )
+
+;; (after! better-jumper
+;;   (define-key evil-motion-state-map (kbd "C-o") 'better-jumper-jump-backward)
+;;   (define-key evil-motion-state-map (kbd "<C-i>") 'better-jumper-jump-forward)
+;;   )
+
+;; (if (featurep 'cocoa)
+;;     (progn
+;;       (setq ns-use-native-fullscreen nil)
+;;       (setq ns-use-fullscreen-animation nil)
+
+;;       (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+
+;;       (run-at-time "2sec" nil
+;;                    (lambda ()
+;;                      (toggle-frame-fullscreen)
+;;                      )))
+;;   (require 'fullscreen)
+;;   (fullscreen))
+
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq display-line-numbers-type 'relative)
 
-(setq lsp-dart-flutter-sdk-dir "/Users/weiwu/development/flutter/")
-(setq lsp-dart-line-length 120)
+(after! treemacs
+  (setq doom-themes-treemacs-theme "doom-colors"))
 
-;; (dap-register-debug-template "Flutter :: dev"
-;;                              (list
-;;                               :type "flutter"
-;;                               :program "lib/main_dev.dart"
-;;                               :args '("--flavor" "dev")))
+(after! lsp-dart
+  (setq lsp-dart-flutter-sdk-dir "/Users/weiwu/development/flutter/")
+  (setq lsp-dart-line-length 120)
+  (dap-register-debug-template "Flutter :: dev"
+                               (list
+                                :type "flutter"
+                                :program "lib/main_dev.dart"
+                                :args '("--flavor" "dev"))))
 
-;; lsp
-;;
-(setq lsp-enable-completion-at-point t)
-(setq lsp-enable-xref t)
-(setq lsp-keymap-prefix "C-c l")
-(setq lsp-enable-snippet t)
-(setq read-process-output-max (* (* 3 1024) 1024)) ;; 1mb
-(setq lsp-completion-provider :capf)
-(setq lsp-idle-delay 0.500)
-(add-to-list 'exec-path "/Users/weiwu/.emacs.d/elixir-ls/release")
+(after! company
+    (define-key company-active-map (kbd "<tab>") 'company-complete-selection)
+    (define-key company-active-map (kbd "RET") 'nil))
+
+
+(after! lsp-mode
+  (setq lsp-completion-enable t)
+  (setq lsp-enable-xref t)
+  (setq lsp-enable-snippet t)
+  (setq read-process-output-max (* (* 3 1024) 1024)) ;; 1mb
+  (setq lsp-completion-provider :capf)
+  (setq lsp-idle-delay 0.200)
+  (add-hook 'elixir-mode-hook #'lsp!)
+  (add-to-list 'exec-path "/Users/weiwu/my.emacs.d/elixir-ls/release"))
+
+
+;; (use-package! alchemist
+;;   :hook (elixir-mode . alchemist-mode)
+;;   :config
+;;   (set-lookup-handlers! 'elixir-mode
+;;     :definition #'alchemist-goto-definition-at-point
+;;     :documentation #'alchemist-help-search-at-point)
+;;   (set-eval-handler! 'elixir-mode #'alchemist-eval-region)
+;;   (set-repl-handler! 'elixir-mode #'alchemist-iex-project-run)
+;;   (setq alchemist-mix-env "dev")
+;;   (setq alchemist-hooks-compile-on-save t)
+;;   (map! :map elixir-mode-map :nv "m" alchemist-mode-keymap))
+
+
+(use-package! youdao-dictionary
+  :defer 2
+  :config
+  (setq url-automatic-caching t)
+  (which-key-add-key-based-replacements "C-x y" "有道翻译")
+  (global-set-key (kbd "C-c y") 'youdao-dictionary-search-at-point)
+  :bind
+  (("C-x y t" . 'youdao-dictionary-search-at-point-tooltip)
+   ("C-x y p" . 'youdao-dictionary-play-voice-at-point)
+   ("C-x y r" . 'youdao-dictionary-search-and-replace)
+   ("C-x y i" . 'youdao-dictionary-search-from-input)))
+
+(use-package! ace-window
+  :config
+  (global-set-key (kbd "M-o") 'ace-window)
+  :init
+  (progn
+    (custom-set-faces
+     '(aw-leading-char-face
+       ((t (:inherit ace-jump-face-foreground :height 3.0 :foreground "red"))))))
+  )
+
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
-;; - `load!' for loading external *.el files relative to this one
+; - `load!' for loading external *.el files relative to this one
 ;; - `use-package!' for configuring packages
 ;; - `after!' for running code after a package has loaded
 ;; - `add-load-path!' for adding directories to the `load-path', relative to
@@ -87,6 +172,7 @@
 ;; they are implemented.
 ;;
 
+(use-package! all-the-icons)
 
 (map!
  "\C-s" 'swiper
@@ -96,7 +182,7 @@
  )
 
 (map!
- :nvi "C-e" 'evil-end-of-line
+ :nvi "C-e" 'move-end-of-line
  :nvi "C-a" 'evil-beginning-of-line
  :nvi "C-p" 'evil-previous-line
  :nvi "C-n" 'evil-next-line
@@ -105,59 +191,11 @@
  )
 
 ;; slove up down slow
-(setq line-move-visual nil)
+;;(setq line-move-visual nil)
 
 ;; (setq display-line-numbers-type nil)
 
-(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector
-   ["#21242b" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
- '(custom-safe-themes
-   (quote
-    ("d71aabbbd692b54b6263bfe016607f93553ea214bc1435d17de98894a5c3a086" default)))
- '(fci-rule-color "#5B6268")
- '(jdee-db-active-breakpoint-face-colors (cons "#1B2229" "#51afef"))
- '(jdee-db-requested-breakpoint-face-colors (cons "#1B2229" "#98be65"))
- '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
- '(objed-cursor-color "#ff6c6b")
- '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
- '(rustic-ansi-faces
-   ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
- '(vc-annotate-background "#282c34")
- '(vc-annotate-color-map
-   (list
-    (cons 20 "#98be65")
-    (cons 40 "#b4be6c")
-    (cons 60 "#d0be73")
-    (cons 80 "#ECBE7B")
-    (cons 100 "#e6ab6a")
-    (cons 120 "#e09859")
-    (cons 140 "#da8548")
-    (cons 160 "#d38079")
-    (cons 180 "#cc7cab")
-    (cons 200 "#c678dd")
-    (cons 220 "#d974b7")
-    (cons 240 "#ec7091")
-    (cons 260 "#ff6c6b")
-    (cons 280 "#cf6162")
-    (cons 300 "#9f585a")
-    (cons 320 "#6f4e52")
-    (cons 340 "#5B6268")
-    (cons 360 "#5B6268")))
- '(vc-annotate-very-old-color nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
+;;(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
 
 ;; (add-hook 'elixir-mode-hook 'eglot-ensure)
 ;; Make sure to edit the path appropriately, use the .bat script instead for Windows
