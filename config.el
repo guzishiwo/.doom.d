@@ -39,7 +39,6 @@
   (remove-hook 'evil-insert-state-exit-hook  #'+default-disable-delete-selection-mode-h)
   )
 
-
 (setq python-shell-virtualenv-path "~/.Envs/")
 
 (if (not (display-graphic-p))
@@ -62,6 +61,7 @@
   ;; (setq org-hide-emphasis-markers t)
   (setq org-export-with-sub-superscripts nil)
   (setq org-export-html-postamble nil)
+  (setq org-image-actual-width '(750))
   (set-face-attribute 'org-table  nil  :font "Sarasa Mono SC Nerd 14"
                      :fontset (create-fontset-from-fontset-spec (concat "-*-*-*-*-*--*-*-*-*-*-*-fontset-orgtable" ",han:Sarasa Mono SC Nerd 14")))
   )
@@ -186,9 +186,9 @@
  :nvi "C-a" 'evil-beginning-of-line
  :nvi "C-p" 'evil-previous-line
  :nvi "C-n" 'evil-next-line
- :nvi "C-d" 'evil-delete-char
+ ;; :nvi "C-d" 'evil-delete-char
  :nvi "C-k" 'evil-delete
- )
+) 
 
 ;; slove up down slow
 ;;(setq line-move-visual nil)
